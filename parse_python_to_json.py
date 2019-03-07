@@ -159,5 +159,5 @@ if __name__ == "__main__":
     print("Dumping")
     with open('data.json', 'w') as fp:
         json.dump(json_data, fp, sort_keys=True, indent=4)
-    print("Existing...")
+    print("Existing")
     sys.exit(1)
