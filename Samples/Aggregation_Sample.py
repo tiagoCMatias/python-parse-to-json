@@ -1,10 +1,9 @@
 from HttpHelper import HTTP
+from aggregation_service_api.models import Aggregation, AggregationUnit, AggregationPack
+from aggregation_service_api.utils.utils import get_schema_full_path
 from django.db import transaction
 from huub_utils.schema_validator import SchemaValidator, SchemaException
 from rest_framework.viewsets import ModelViewSet
-
-from aggregation_service_api.models import Aggregation, AggregationUnit, AggregationPack
-from aggregation_service_api.utils.utils import get_schema_full_path
 
 
 class AggregationView(ModelViewSet):

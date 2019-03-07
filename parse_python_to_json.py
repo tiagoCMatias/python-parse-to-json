@@ -30,13 +30,14 @@ import pythonparser  # based on https://github.com/m-labs/pythonparser
 
 def parse_directory(code, indent_level=None):
     print("parse")
+
     try:
         p = pythonparser.parse(code)
 
         v = Visitor()
         res = v.visit(p)
         # print(json.dumps(res, indent=indent_level))
-        return json.dumps(res, indent=indent_level)
+        module = json.dumps(res, indent=indent_level)
 
     except pythonparser.diagnostic.Error as e:
         error_obj = {'type': 'parse_error'}
@@ -51,6 +52,8 @@ def parse_directory(code, indent_level=None):
         error_obj['message'] = diag.message()
         print(json.dumps(error_obj, indent=indent_level))
         sys.exit(1)
+
+    return module
 
 
 # pp = pprint.PrettyPrinter()
@@ -96,7 +99,7 @@ if __name__ == "__main__":
                       help="Pretty-print JSON for human viewing")
     (options, args) = parser.parse_args()
 
-    output_directory = []
+    output_modules = []
 
     if options.pydirectory:
         includes = ['*.py']  # for files only
@@ -107,7 +110,7 @@ if __name__ == "__main__":
         includes = r'|'.join([fnmatch.translate(x) for x in includes])
         excludes = r'|'.join([fnmatch.translate(x) for x in excludes]) or r'$.'
 
-        for root, dirs, files in os.walk('/home/tiago/Documents/Pessoal/Tese/Honeycomb/python-parse-to-json/Samples'):
+        for root, dirs, files in os.walk('Samples'):
 
             # exclude dirs
             dirs[:] = [os.path.join(root, d) for d in dirs]
@@ -123,20 +126,38 @@ if __name__ == "__main__":
                 print("Opening...")
                 code = open(file).read()
                 print("Preparing to parse")
-                output_directory.append(parse_directory(code))
+                output_modules.append(
+                    {
+                        "name": file,
+                        "data": parse_directory(code)
+                    })
                 print(".")
 
     if options.pyfile:
+        indent_level = None
+        if options.pp:
+            indent_level = 2
+        print(options.pyfile, indent_level)
         code = open(options.pyfile).read()
-        parse_directory(code)
-    else:
-        code = args[0]
-        # make sure it ends with a newline to get parse() to work:
-        if code[-1] != '\n':
-            code += '\n'
-
-    if options.pp:
-        indent_level = 2
-        parse_directory(code)
+        output_modules.append(parse_directory(code))
+    # else:
+    #     code = #args[0]
+    #     # make sure it ends with a newline to get parse() to work:
+    #     if code[-1] != '\n':
+    #         code += '\n'
+    #     output_modules.append(parse_directory(code))
+    json_data = []
+    i = 0
+    for module in output_modules:
+        print(module)
+        json_data.append({
+            "index": i,
+            "module": module
+        })
+        i += 1
+        # pass
+    print("Dumping")
+    with open('data.json', 'w') as fp:
+        json.dump(json_data, fp, sort_keys=True, indent=4)
     print("Existing...")
     sys.exit(1)
